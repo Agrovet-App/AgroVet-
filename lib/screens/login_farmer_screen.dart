@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/utils/validators.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class LoginFarmerScreen extends StatefulWidget {
+  const LoginFarmerScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<LoginFarmerScreen> createState() => _LoginFarmerScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginFarmerScreenState extends State<LoginFarmerScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = false;
     });
 
-    Navigator.of(context).pushReplacementNamed('/home');
+    Navigator.of(context).pushReplacementNamed('/home_farmer');
   }
 
   Widget _buildSocialButton({
@@ -73,7 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sesion'),
+        title: const Text('Campesino - Iniciar Sesión'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pushReplacementNamed('/');
+          },
+        ),
       ),
       body: SafeArea(
         child: Center(
@@ -85,21 +91,39 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SizedBox(
-                    height: 150,
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.contain,
+                  // Icon
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const FaIcon(
+                      FontAwesomeIcons.leaf,
+                      color: AppColors.primary,
+                      size: 48,
                     ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
+                  
+                  const Text(
+                    'Acceso Campesino',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'Correo Electronico',
                       prefixIcon: Icon(Icons.email),
-                      border: OutlineInputBorder(),
                     ),
                     validator: Validators.validateEmail,
                   ),
@@ -108,9 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     controller: _passwordController,
                     obscureText: true,
                     decoration: const InputDecoration(
-                      labelText: 'Contrasena',
+                      labelText: 'Contraseña',
                       prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
                     ),
                     validator: Validators.validatePassword,
                   ),
@@ -133,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'O continua con',
+                    'O continúa con',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.gray),
                   ),
@@ -166,9 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _isLoading
                             ? null
                             : () {
-                                Navigator.of(
-                                  context,
-                                ).pushReplacementNamed('/register');
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/register');
                               },
                         style: TextButton.styleFrom(
                           padding: EdgeInsets.zero,
