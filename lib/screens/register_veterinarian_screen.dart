@@ -66,15 +66,25 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
       );
 
       if (user != null) {
-        // Guardar datos del veterinario en Firestore
+        // Crear registro en colección 'users'
+        await _firestoreService.createUser(
+          user.uid,
+          _emailController.text.trim(),
+          _nameController.text.trim(),
+          'veterinario',
+          _phoneController.text.trim(),
+        );
+
+        // Guardar datos del veterinario en 'veterinarios'
         await _firestoreService.saveVeterinarianData(user.uid, {
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'professionalId': _professionalIdController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'clinicName': _clinicNameController.text.trim(),
-          'specialty': _selectedSpecialty,
-          'role': 'veterinarian',
+          'nombreCompleto': _nameController.text.trim(),
+          'correo': _emailController.text.trim(),
+          'telefono': _phoneController.text.trim(),
+          'cedulaProfesional': _professionalIdController.text.trim(),
+          'clinica': _clinicNameController.text.trim(),
+          'especialidad': _selectedSpecialty,
+          'direccion': '',
+          'experiencia': 0,
         });
 
         if (!mounted) return;

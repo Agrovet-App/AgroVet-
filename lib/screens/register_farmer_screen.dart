@@ -69,17 +69,31 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
       );
 
       if (user != null) {
-        // Guardar datos del ganadero en Firestore
+        // Crear registro en colección 'users'
+        await _firestoreService.createUser(
+          user.uid,
+          _emailController.text.trim(),
+          _nameController.text.trim(),
+          'ganadero',
+          '', // telefono (opcional)
+        );
+
+        // Guardar datos del ganadero en 'ganaderos'
         await _firestoreService.saveFarmerData(user.uid, {
-          'name': _nameController.text.trim(),
-          'email': _emailController.text.trim(),
-          'age': int.parse(_ageController.text),
-          'sex': _selectedSex,
-          'education': _selectedEducation,
+          'nombreCompleto': _nameController.text.trim(),
+          'correo': _emailController.text.trim(),
+          'telefono': '',
+          'documento': '',
+          'edad': int.parse(_ageController.text),
+          'sexo': _selectedSex,
+          'nivelEducativo': _selectedEducation,
           'vereda': _veredaController.text.trim(),
-          'yearsInActivity': int.parse(_yearsController.text),
-          'farmSize': double.parse(_predioDiameterController.text),
-          'role': 'farmer',
+          'anosActividadPecuaria': int.parse(_yearsController.text),
+          'tamanoPredio': double.parse(_predioDiameterController.text),
+          'direccion': '',
+          'notas': '',
+          'cantidadAnimales': 0,
+          'estadoSanitario': 'estable',
         });
 
         if (!mounted) return;

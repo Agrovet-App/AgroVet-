@@ -11,7 +11,15 @@ import 'package:agrovet/screens/register_screen.dart';
 import 'package:agrovet/screens/home_screen.dart';
 import 'package:agrovet/screens/home_farmer_screen.dart';
 import 'package:agrovet/screens/home_veterinarian_screen.dart';
+import 'package:agrovet/screens/my_farm_screen.dart';
+import 'package:agrovet/screens/cattle_health_screen.dart';
+import 'package:agrovet/screens/feeding_screen.dart';
+import 'package:agrovet/screens/reproduction_screen.dart';
+import 'package:agrovet/screens/manage_appointment_screen.dart';
+import 'package:agrovet/screens/call_veterinarian_screen.dart';
 import 'package:agrovet/utils/app_theme.dart';
+import 'package:agrovet/screens/home_farmer_screen.dart';
+import 'package:agrovet/screens/my_farm_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +53,12 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const HomeScreen(),
         '/home_farmer': (context) => const HomeFarmerScreen(),
         '/home_veterinarian': (context) => const HomeVeterinarianScreen(),
+        '/my_farm': (context) =>  MyFarmScreen(),
+        '/cattle_health': (context) => const CattleHealthScreen(),
+        '/feeding': (context) => const FeedingScreen(),
+        '/reproduction': (context) => const ReproductionScreen(),
+        '/manage_appointment': (context) => const ManageAppointmentScreen(),
+        '/call_veterinarian': (context) => const CallVeterinarianScreen(),
       },
     );
   }
