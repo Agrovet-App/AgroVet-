@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:agrovet/utils/app_theme.dart';
-import 'package:agrovet/models/user.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
-
-  void _selectRole(BuildContext context, UserRole role) {
-    String route = role == UserRole.veterinarian ? '/login_veterinarian' : '/login_farmer';
-    Navigator.of(context).pushReplacementNamed(route);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,14 +16,6 @@ class RoleSelectionScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Logo
-                SizedBox(
-                  height: 120,
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.contain,
-                  ),
-                ),
                 const SizedBox(height: 32),
                 
                 // Title
@@ -46,32 +32,36 @@ class RoleSelectionScreen extends StatelessWidget {
                 
                 // Subtitle
                 const Text(
-                  '¿Quién eres?',
+                  'Plataforma de Telemedicina Veterinaria',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.gray,
                   ),
                 ),
-                const SizedBox(height: 48),
+                const SizedBox(height: 64),
 
-                // Veterinarian Card
-                _buildRoleCard(
+                // Login Button
+                _buildActionButton(
                   context,
-                  icon: FontAwesomeIcons.stethoscope,
-                  title: 'Veterinario',
-                  description: 'Acceso para profesionales veterinarios',
-                  role: UserRole.veterinarian,
+                  icon: FontAwesomeIcons.signInAlt,
+                  title: 'Iniciar Sesión',
+                  description: 'Accede a tu cuenta',
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/account_type_login');
+                  },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
 
-                // Farmer Card
-                _buildRoleCard(
+                // Register Button
+                _buildActionButton(
                   context,
-                  icon: FontAwesomeIcons.leaf,
-                  title: 'Campesino',
-                  description: 'Acceso para productores agrícolas',
-                  role: UserRole.farmer,
+                  icon: FontAwesomeIcons.userPlus,
+                  title: 'Crear Cuenta',
+                  description: 'Regístrate en AgroVet',
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/account_type_register');
+                  },
                 ),
               ],
             ),
@@ -81,15 +71,15 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRoleCard(
+  Widget _buildActionButton(
     BuildContext context, {
     required FaIconData icon,
     required String title,
     required String description,
-    required UserRole role,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () => _selectRole(context, role),
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
@@ -149,7 +139,7 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
             ),
             // Arrow
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AppColors.primary,
               size: 18,

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primary = Color.fromRGBO(188, 0, 23, 1);
+  // Green tones for agriculture
+  static const Color primary = Color.fromRGBO(34, 139, 34, 1); // Forest Green
+  static const Color primaryLight = Color.fromRGBO(76, 175, 80, 1); // Light Green
+  static const Color primaryDark = Color.fromRGBO(27, 94, 32, 1); // Dark Green
+  static const Color accent = Color.fromRGBO(139, 195, 74, 1); // Lime Green
+  
   static const Color black = Color.fromRGBO(0, 0, 0, 1);
   static const Color gray = Color.fromRGBO(129, 131, 134, 1);
   static const Color gray50 = Color.fromRGBO(129, 131, 134, 0.5);

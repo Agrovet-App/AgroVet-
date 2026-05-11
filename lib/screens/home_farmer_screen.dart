@@ -37,7 +37,7 @@ class HomeFarmerScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     colors: [
                       AppColors.primary,
-                      AppColors.primaryLight,
+                      AppColors.primary.withOpacity(0.7),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,

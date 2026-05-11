@@ -2,6 +2,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/utils/validators.dart';
+import 'package:agrovet/services/auth_service.dart';
 
 class LoginVeterinarianScreen extends StatefulWidget {
   const LoginVeterinarianScreen({super.key});
@@ -12,6 +13,7 @@ class LoginVeterinarianScreen extends StatefulWidget {
 
 class _LoginVeterinarianScreenState extends State<LoginVeterinarianScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -34,17 +36,36 @@ class _LoginVeterinarianScreenState extends State<LoginVeterinarianScreen> {
       _isLoading = true;
     });
 
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final user = await _authService.loginWithEmailPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
 
-    if (!mounted) {
-      return;
+      if (user != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Bienvenido!'),
+            backgroundColor: Color.fromRGBO(34, 139, 34, 1),
+          ),
+        );
+
+        Navigator.of(context).pushReplacementNamed('/home_veterinarian');
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    Navigator.of(context).pushReplacementNamed('/home_veterinarian');
   }
 
   Widget _buildSocialButton({
