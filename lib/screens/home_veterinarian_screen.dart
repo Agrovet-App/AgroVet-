@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:agrovet/utils/app_theme.dart';
-import 'package:agrovet/screens/register_animal_screen.dart';
+import 'package:agrovet/screens/view_animals_screen.dart';
 import 'package:agrovet/screens/manage_appointments_screen.dart';
 
 class HomeVeterinarianScreen extends StatelessWidget {
@@ -87,13 +87,13 @@ class HomeVeterinarianScreen extends StatelessWidget {
                   _buildMainMenuCard(
                     context,
                     FontAwesomeIcons.clipboardList,
-                    'Registrar Animal',
+                    'Ver Animales Registrados',
                     Colors.blue,
                     () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) =>
-                              const RegisterAnimalScreen(),
+                              const ViewAnimalsScreen(),
                         ),
                       );
                     },

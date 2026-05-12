@@ -197,4 +197,34 @@ class FirestoreService {
       throw Exception('Error al obtener animales: $e');
     }
   }
+
+  // Obtener todos los animales
+  Future<List<Map<String, dynamic>>> getAllAnimals() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('animales')
+          .orderBy('creadoEn', descending: true)
+          .get();
+      
+      return snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    } catch (e) {
+      throw Exception('Error al obtener animales: $e');
+    }
+  }
+
+  // Obtener datos de un ganadero por UID
+  Future<Map<String, dynamic>?> getFarmerDataByUid(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection('ganaderos').doc(uid).get();
+      
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Error al obtener datos del ganadero: $e');
+    }
+  }
 }

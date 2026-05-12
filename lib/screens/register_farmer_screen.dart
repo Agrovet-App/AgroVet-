@@ -20,6 +20,8 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
   final _ageController = TextEditingController();
   final _veredaController = TextEditingController();
   final _yearsController = TextEditingController();
@@ -45,6 +47,8 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
     _ageController.dispose();
     _veredaController.dispose();
     _yearsController.dispose();
@@ -82,7 +86,7 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
         await _firestoreService.saveFarmerData(user.uid, {
           'nombreCompleto': _nameController.text.trim(),
           'correo': _emailController.text.trim(),
-          'telefono': '',
+          'telefono': _phoneController.text.trim(),
           'documento': '',
           'edad': int.parse(_ageController.text),
           'sexo': _selectedSex,
@@ -90,7 +94,7 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
           'vereda': _veredaController.text.trim(),
           'anosActividadPecuaria': int.parse(_yearsController.text),
           'tamanoPredio': double.parse(_predioDiameterController.text),
-          'direccion': '',
+          'direccion': _addressController.text.trim(),
           'notas': '',
           'cantidadAnimales': 0,
           'estadoSanitario': 'estable',
@@ -282,6 +286,39 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'La vereda es requerida';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Teléfono
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Teléfono',
+                    prefixIcon: Icon(Icons.phone),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El teléfono es requerido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Dirección
+                TextFormField(
+                  controller: _addressController,
+                  decoration: const InputDecoration(
+                    labelText: 'Dirección',
+                    prefixIcon: Icon(Icons.home),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La dirección es requerida';
                     }
                     return null;
                   },
