@@ -17,6 +17,7 @@ import 'package:agrovet/screens/feeding_screen.dart';
 import 'package:agrovet/screens/reproduction_screen.dart';
 import 'package:agrovet/screens/manage_appointment_screen.dart';
 import 'package:agrovet/screens/call_veterinarian_screen.dart';
+import 'package:agrovet/screens/register_animal_screen.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/screens/home_farmer_screen.dart';
 import 'package:agrovet/screens/my_farm_screen.dart'; 
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/reproduction': (context) => const ReproductionScreen(),
         '/manage_appointment': (context) => const ManageAppointmentScreen(),
         '/call_veterinarian': (context) => const CallVeterinarianScreen(),
+        '/register_animal': (context) => const RegisterAnimalScreen(),
       },
     );
   }
