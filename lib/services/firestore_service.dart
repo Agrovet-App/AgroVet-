@@ -62,12 +62,32 @@ class FirestoreService {
       vetData['cantidadCitas'] = 0;
       vetData['creadoEn'] = FieldValue.serverTimestamp();
       vetData['actualizadoEn'] = FieldValue.serverTimestamp();
-      
+
       await _firestore.collection('veterinarios').doc(uid).set(vetData);
     } catch (e) {
       throw Exception('Error al guardar datos del veterinario: $e');
     }
   }
+
+  // Actualizar datos del veterinario en 'veterinarios'
+  Future<void> updateVeterinarianData(
+    String uid,
+    Map<String, dynamic> vetData,
+  ) async {
+    try {
+      vetData['uid'] = uid;
+      vetData['actualizadoEn'] = FieldValue.serverTimestamp();
+
+      // merge:true para no borrar campos existentes
+      await _firestore
+          .collection('veterinarios')
+          .doc(uid)
+          .set(vetData, SetOptions(merge: true));
+    } catch (e) {
+      throw Exception('Error al actualizar datos del veterinario: $e');
+    }
+  }
+
 
   // Obtener datos del ganadero
   Future<Map<String, dynamic>?> getFarmerData(String uid) async {
@@ -165,15 +185,14 @@ class FirestoreService {
     }
   }
 
-  // Obtener citas de un ganadero
+  // Obtener citas de un ganadero (sin orderBy para evitar índices compuestos)
   Future<List<Map<String, dynamic>>> getFarmerAppointments(String ganaderoId) async {
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('citas')
           .where('ganaderoId', isEqualTo: ganaderoId)
-          .orderBy('fecha', descending: true)
           .get();
-      
+
       return snapshot.docs
           .map((doc) => doc.data() as Map<String, dynamic>)
           .toList();
@@ -181,6 +200,25 @@ class FirestoreService {
       throw Exception('Error al obtener citas: $e');
     }
   }
+
+  // Obtener citas por veterinario (sin orderBy para evitar índices compuestos)
+  Future<List<Map<String, dynamic>>> getVeterinarianAppointments(
+    String veterinarioId,
+  ) async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('citas')
+          .where('veterinarioId', isEqualTo: veterinarioId)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
+    } catch (e) {
+      throw Exception('Error al obtener citas del veterinario: $e');
+    }
+  }
+
 
   // Obtener animales de un ganadero
   Future<List<Map<String, dynamic>>> getFarmerAnimals(String ganaderoId) async {
@@ -225,6 +263,34 @@ class FirestoreService {
       return null;
     } catch (e) {
       throw Exception('Error al obtener datos del ganadero: $e');
+    }
+  }
+
+  // Actualizar estado de una cita en 'citas'
+  Future<void> updateAppointmentEstado(String appointmentId, String estado) async {
+    try {
+      await _firestore.collection('citas').doc(appointmentId).update({
+        'estado': estado,
+        'actualizadoEn': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Error al actualizar estado de la cita: $e');
+    }
+  }
+
+  // Obtener todos los ganaderos registrados (colección 'ganaderos')
+  Future<List<Map<String, dynamic>>> getAllFarmers() async {
+
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('ganaderos').get();
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        // Asegurar que exista el uid para la UI
+        data['uid'] ??= doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      throw Exception('Error al obtener ganaderos: $e');
     }
   }
 }

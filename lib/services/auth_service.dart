@@ -12,11 +12,16 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException catch (e) {
+      // Si el email ya existe, permitir continuar intentando con login.
+      // El mensaje original se maneja en RegisterVeterinarianScreen.
+      if (e.code == 'email-already-in-use') {
+        return null;
+      }
       throw _handleAuthError(e);
     }
   }
 
-  // Iniciar sesión
+  // Inicia sesión (reutilizable en flujos de registro)
   Future<User?> loginWithEmailPassword(String email, String password) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
@@ -28,6 +33,7 @@ class AuthService {
       throw _handleAuthError(e);
     }
   }
+
 
   // Cerrar sesión
   Future<void> logout() async {

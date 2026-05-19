@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/utils/validators.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class RegisterFarmerScreen extends StatefulWidget {
+
   const RegisterFarmerScreen({super.key});
 
   @override
@@ -16,6 +21,9 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
   final _authService = AuthService();
   final _firestoreService = FirestoreService();
   
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+
   // Controllers
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -56,6 +64,32 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<String> _uploadImage(String uid) async {
+    if (_image == null) return '';
+
+    final storageRef = FirebaseStorage.instance
+        .ref()
+        .child('profile_images')
+        .child('$uid.jpg');
+
+    await storageRef.putFile(_image!);
+
+    return await storageRef.getDownloadURL();
+  }
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -82,8 +116,11 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
           '', // telefono (opcional)
         );
 
+        final photoUrl = await _uploadImage(user.uid);
+
         // Guardar datos del ganadero en 'ganaderos'
         await _firestoreService.saveFarmerData(user.uid, {
+
           'nombreCompleto': _nameController.text.trim(),
           'correo': _emailController.text.trim(),
           'telefono': _phoneController.text.trim(),
@@ -96,7 +133,9 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
           'tamanoPredio': double.parse(_predioDiameterController.text),
           'direccion': _addressController.text.trim(),
           'notas': '',
+          'fotoUrl': photoUrl,
           'cantidadAnimales': 0,
+
           'estadoSanitario': 'estable',
         });
 
@@ -159,7 +198,29 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
                 ),
                 const SizedBox(height: 20),
 
+                Center(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage:
+                            _image != null ? FileImage(_image!) : null,
+                        child: _image == null
+                            ? const Icon(Icons.camera_alt, size: 40)
+                            : null,
+                      ),
+                      TextButton(
+                        onPressed: _pickImage,
+                        child: const Text('Seleccionar Foto'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 // Name
+
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(

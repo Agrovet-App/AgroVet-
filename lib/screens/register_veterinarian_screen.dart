@@ -1,10 +1,15 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/utils/validators.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class RegisterVeterinarianScreen extends StatefulWidget {
+
   const RegisterVeterinarianScreen({super.key});
 
   @override
@@ -24,7 +29,12 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
   final _phoneController = TextEditingController();
   final _clinicNameController = TextEditingController();
 
+  Uint8List? _imageBytes;
+
+  final ImagePicker _picker = ImagePicker();
+
   String? _selectedSpecialty;
+
   bool _isLoading = false;
 
   final specialties = [
@@ -49,6 +59,29 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image == null) return;
+
+    final bytes = await image.readAsBytes();
+
+    setState(() {
+      _imageBytes = bytes;
+    });
+  }
+
+  Future<String> _uploadImage(String uid) async {
+    // Guardar solo en Firestore (evitamos Storage en web por CORS).
+    // En otras plataformas podrías implementar el upload si lo necesitas.
+    if (_imageBytes == null) return '';
+    return '';
+  }
+
+
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -66,17 +99,23 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
       );
 
       if (user != null) {
-        // Crear registro en colección 'users'
+        final uid = user.uid;
+
+        // Crear/actualizar registro en colección 'users'
         await _firestoreService.createUser(
-          user.uid,
+          uid,
           _emailController.text.trim(),
           _nameController.text.trim(),
           'veterinario',
           _phoneController.text.trim(),
         );
 
+        // En web pueden fallar los uploads por CORS; si falla, continuamos sin bloquear el registro.
+        final photoUrl = await _uploadImage(uid);
+
         // Guardar datos del veterinario en 'veterinarios'
-        await _firestoreService.saveVeterinarianData(user.uid, {
+        await _firestoreService.saveVeterinarianData(uid, {
+
           'nombreCompleto': _nameController.text.trim(),
           'correo': _emailController.text.trim(),
           'telefono': _phoneController.text.trim(),
@@ -84,12 +123,12 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
           'clinica': _clinicNameController.text.trim(),
           'especialidad': _selectedSpecialty,
           'direccion': '',
+          if (photoUrl.isNotEmpty) 'fotoUrl': photoUrl,
           'experiencia': 0,
         });
 
         if (!mounted) return;
 
-        // Mostrar mensaje de éxito
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('¡Registro exitoso!'),
@@ -97,10 +136,57 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
           ),
         );
 
-        // Ir a pantalla de inicio del veterinario
+        Navigator.of(context).pushReplacementNamed('/home_veterinarian');
+      } else {
+        // Si el email ya existe en Firebase Auth, intentamos login y aseguramos documentos en Firestore.
+        final existingUser = await _authService.loginWithEmailPassword(
+          _emailController.text.trim(),
+          _passwordController.text.trim(),
+        );
+
+        if (existingUser == null) {
+          throw Exception('No se pudo iniciar sesión con ese correo.');
+        }
+
+        final uid = existingUser.uid;
+
+        await _firestoreService.createUser(
+          uid,
+          _emailController.text.trim(),
+          _nameController.text.trim(),
+          'veterinario',
+          _phoneController.text.trim(),
+        );
+
+        // En web pueden fallar los uploads por CORS; si falla, continuamos sin bloquear el registro.
+        final photoUrl = await _uploadImage(uid);
+
+        await _firestoreService.saveVeterinarianData(uid, {
+
+          'nombreCompleto': _nameController.text.trim(),
+          'correo': _emailController.text.trim(),
+          'telefono': _phoneController.text.trim(),
+          'cedulaProfesional': _professionalIdController.text.trim(),
+          'clinica': _clinicNameController.text.trim(),
+          'especialidad': _selectedSpecialty,
+          'direccion': '',
+          'fotoUrl': photoUrl,
+          'experiencia': 0,
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Cuenta existente, datos asegurados!'),
+            backgroundColor: Color.fromRGBO(34, 139, 34, 1),
+          ),
+        );
+
         Navigator.of(context).pushReplacementNamed('/home_veterinarian');
       }
     } catch (e) {
+
       if (!mounted) return;
 
       setState(() {
@@ -146,7 +232,29 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
                 ),
                 const SizedBox(height: 20),
 
+                Center(
+                  child: Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage:
+                            _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                        child: _imageBytes == null
+                            ? const Icon(Icons.camera_alt, size: 40)
+                            : null,
+                      ),
+                      TextButton(
+                        onPressed: _pickImage,
+                        child: const Text('Seleccionar Foto'),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
                 // Full Name
+
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(

@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 import 'package:agrovet/services/firestore_service.dart';
 
 class RegisterAnimalScreen extends StatefulWidget {
@@ -20,6 +25,10 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
   final _notesController = TextEditingController();
 
   late final FirestoreService _firestoreService;
+
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
+
 
   String? _selectedSpecies;
   String? _selectedGender;
@@ -52,18 +61,28 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
     super.dispose();
   }
 
-  Future<void> _saveAnimal() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
 
-    if (_selectedSpecies == null || _selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona especie y sexo'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
     }
+  }
+
+  Future<String> _uploadImage(String uid) async {
+    // Guardar solo en Firestore (evitamos Storage para evitar CORS en web).
+    if (_image == null) return '';
+    return '';
+  }
+
+  Future<void> _saveAnimal() async {
+
+    if (!_formKey.currentState!.validate()) return;
 
     final user = FirebaseAuth.instance.currentUser;
 
@@ -77,14 +96,29 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
       return;
     }
 
+
+    if (_selectedSpecies == null || _selectedGender == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor selecciona especie y sexo'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+
 
     try {
       final animalId = const Uuid().v4();
 
+      final photoUrl = await _uploadImage(animalId);
+
       final animalData = {
         'id': animalId,
-        'ganaderoId': user.uid, // 🔥 FIX IMPORTANTE
+        'ganaderoId': user.uid,
+
         'nombre': _nameController.text.trim(),
         'especie': _selectedSpecies,
         'raza': _breedController.text.trim(),
@@ -92,6 +126,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
         'peso': double.tryParse(_weightController.text) ?? 0.0,
         'sexo': _selectedGender,
         'notasMedicas': _notesController.text.trim(),
+        'fotoUrl': photoUrl,
         'estado': 'activo',
         'creadoEn': DateTime.now().toIso8601String(),
         'actualizadoEn': DateTime.now().toIso8601String(),
@@ -141,8 +176,26 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
           key: _formKey,
           child: Column(
             children: [
+              Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage:
+                          _image != null ? FileImage(_image!) : null,
+                      child: _image == null
+                          ? const Icon(Icons.camera_alt, size: 40)
+                          : null,
+                    ),
+                    TextButton(
+                      onPressed: _pickImage,
+                      child: const Text('Seleccionar Foto'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
 
-              // ESPECIE
               DropdownButtonFormField<String>(
                 value: _selectedSpecies,
                 items: _species
@@ -159,7 +212,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // NOMBRE
+              
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
@@ -169,7 +222,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // RAZA
+             
               TextFormField(
                 controller: _breedController,
                 decoration: const InputDecoration(labelText: 'Raza'),
@@ -177,7 +230,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // EDAD
+              
               TextFormField(
                 controller: _ageController,
                 keyboardType: TextInputType.number,
@@ -186,7 +239,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // PESO
+             
               TextFormField(
                 controller: _weightController,
                 keyboardType: TextInputType.number,
@@ -195,7 +248,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // SEXO
+              
               DropdownButtonFormField<String>(
                 value: _selectedGender,
                 items: _genders
@@ -212,7 +265,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 10),
 
-              // NOTAS
+            
               TextFormField(
                 controller: _notesController,
                 maxLines: 3,
@@ -222,7 +275,7 @@ class _RegisterAnimalScreenState extends State<RegisterAnimalScreen> {
 
               const SizedBox(height: 20),
 
-              // BOTÓN
+              
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(

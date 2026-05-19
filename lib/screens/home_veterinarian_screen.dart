@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/screens/view_animals_screen.dart';
-import 'package:agrovet/screens/manage_appointments_screen.dart';
+import 'package:agrovet/screens/manage_appointment_screen.dart';
+import 'package:agrovet/screens/update_veterinarian_profile_screen.dart';
+import 'package:agrovet/screens/view_veterinarian_appointments_screen.dart';
+
+
 
 class HomeVeterinarianScreen extends StatelessWidget {
+
   const HomeVeterinarianScreen({super.key});
 
   @override
@@ -101,19 +106,35 @@ class HomeVeterinarianScreen extends StatelessWidget {
                   _buildMainMenuCard(
                     context,
                     FontAwesomeIcons.calendar,
-                    'Gestionar Citas',
+                    'Gestionar citas',
                     Colors.green,
                     () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) =>
-                              const ManageAppointmentsScreen(),
+                              const ManageAppointmentScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  _buildMainMenuCard(
+                    context,
+                    Icons.person,
+                    'Actualizar Perfil',
+                    Colors.teal,
+                    () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const UpdateVeterinarianProfileScreen(),
                         ),
                       );
                     },
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
 
               // Sección: Otras opciones
@@ -134,14 +155,25 @@ class HomeVeterinarianScreen extends StatelessWidget {
                 mainAxisSpacing: 16,
                 children: [
                   _buildMenuCard(
-                    FontAwesomeIcons.chartLine,
-                    'Estadísticas',
+                    FontAwesomeIcons.clipboardList,
+                    'Ver citas',
                     Colors.red,
+                    () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const ViewVeterinarianAppointmentsScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildMenuCard(
                     FontAwesomeIcons.fileLines,
                     'Reportes',
                     Colors.teal,
+                    () {
+                      // TODO: implementar navegación a Reportes si aplica
+                    },
                   ),
                 ],
               ),
@@ -154,11 +186,12 @@ class HomeVeterinarianScreen extends StatelessWidget {
 
   Widget _buildMainMenuCard(
     BuildContext context,
-    FaIconData icon,
+    Object icon,
     String label,
     Color color,
     VoidCallback onTap,
   ) {
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -177,7 +210,10 @@ class HomeVeterinarianScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            FaIcon(icon, size: 48, color: color),
+            icon is FaIconData
+                ? FaIcon(icon, size: 48, color: color)
+                : Icon(icon as IconData, size: 48, color: color),
+
             const SizedBox(height: 12),
             Text(
               label,
@@ -194,10 +230,11 @@ class HomeVeterinarianScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard(FaIconData icon, String label, Color color) {
+  Widget _buildMenuCard(FaIconData icon, String label, Color color, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {},
+      onTap: onTap,
       child: Container(
+
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: color.withValues(alpha: 0.3), width: 2),

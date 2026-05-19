@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
+import 'package:uuid/uuid.dart';
 
 class ManageAppointmentScreen extends StatefulWidget {
   const ManageAppointmentScreen({super.key});
@@ -16,16 +16,19 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
   late final AuthService _authService;
   late final FirestoreService _firestoreService;
-  late String _farmerId;
 
+  String? _selectedFarmerId;
   String? _selectedVet;
   String? _selectedAnimal;
   String? _selectedService;
+  String? _descripcion;
+
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   bool _isLoading = false;
 
   List<Map<String, dynamic>> _vets = [];
+  List<Map<String, dynamic>> _farmers = [];
   List<Map<String, dynamic>> _animals = [];
 
   final List<String> _services = [
@@ -36,8 +39,24 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
     'Odontología',
     'Revisión de Salud',
     'Medicación',
-    'Otro'
+    'Otro',
   ];
+
+  String? _getFarmerDisplayName(Map<String, dynamic> farmer) {
+    final nombre = farmer['nombreCompleto']?.toString();
+    if (nombre != null && nombre.isNotEmpty) return nombre;
+    final correo = farmer['correo']?.toString();
+    if (correo != null && correo.isNotEmpty) return correo;
+    return farmer['uid']?.toString() ?? 'Ganadero';
+  }
+
+  String? _getVetDisplayName(Map<String, dynamic> vet) {
+    final nombre = vet['nombreCompleto']?.toString();
+    if (nombre != null && nombre.isNotEmpty) return nombre;
+    final correo = vet['correo']?.toString();
+    if (correo != null && correo.isNotEmpty) return correo;
+    return vet['uid']?.toString() ?? 'Veterinario';
+  }
 
   @override
   void initState() {
@@ -52,23 +71,44 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       });
-
-      _farmerId = '';
+      _selectedFarmerId = null;
     } else {
-      _farmerId = currentUser.uid;
       _loadData();
+      _setLoggedVeterinarian();
+    }
+  }
+
+  Future<void> _setLoggedVeterinarian() async {
+    final currentUser = _authService.getCurrentUser();
+    if (currentUser == null) return;
+
+    try {
+      final vetDoc = await _firestoreService.getVeterinarianData(currentUser.uid);
+      if (!mounted) return;
+
+      final String? vetIdFromDoc = (vetDoc?['uid']?.toString()) ?? currentUser.uid;
+      setState(() {
+        _selectedVet = vetIdFromDoc;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _selectedVet = currentUser.uid;
+      });
     }
   }
 
   Future<void> _loadData() async {
     try {
       final vets = await _firestoreService.getAllVeterinarians();
-      final animals = await _firestoreService.getFarmerAnimals(_farmerId);
+      final farmers = await _firestoreService.getAllFarmers();
 
       if (mounted) {
         setState(() {
           _vets = vets;
-          _animals = animals;
+          _farmers = farmers;
+          _animals = [];
+          _selectedAnimal = null;
         });
       }
     } catch (e) {
@@ -112,28 +152,24 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
   }
 
   Future<void> _saveAppointment() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     if (_selectedVet == null ||
         _selectedAnimal == null ||
         _selectedService == null ||
         _selectedDate == null ||
-        _selectedTime == null) {
+        _selectedTime == null ||
+        _descripcion == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor completa todos los campos'),
           backgroundColor: Colors.red,
         ),
       );
-
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       final appointmentId = const Uuid().v4();
@@ -148,26 +184,24 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
       final appointmentData = {
         'id': appointmentId,
-        'ganaderoId': _farmerId,
+        'ganaderoId': _selectedFarmerId,
         'veterinarioId': _selectedVet,
         'animal': _selectedAnimal,
         'servicio': _selectedService,
         'fecha': appointmentDateTime,
         'hora':
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+        'notas': _descripcion,
         'estado': 'pendiente',
       };
 
-      await _firestoreService.createAppointment(
-        appointmentId,
-        appointmentData,
-      );
+      await _firestoreService.createAppointment(appointmentId, appointmentData);
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('¡Cita agendada exitosamente!'),
+          content: Text('¡Cita solicitada exitosamente!'),
           backgroundColor: Colors.green,
         ),
       );
@@ -175,7 +209,6 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al agendar cita: $e'),
@@ -183,11 +216,7 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
         ),
       );
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -199,7 +228,7 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: const Text(
-          'Agendar Cita',
+          'Solicitar Cita',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -219,22 +248,19 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                // Veterinario
                 const Text(
-                  'Veterinario',
+                  'Ganadero',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
                 const SizedBox(height: 8),
 
                 DropdownButtonFormField<String>(
-                  value: _selectedVet,
+                  value: _selectedFarmerId,
                   decoration: InputDecoration(
-                    hintText: 'Selecciona un veterinario',
+                    hintText: 'Selecciona un ganadero',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -242,26 +268,31 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     fillColor: Colors.grey.shade100,
                     prefixIcon: const Icon(Icons.person_outline),
                   ),
-                  items: _vets
-                      .map<DropdownMenuItem<String>>((vet) {
-                    final String vetId = vet['uid']?.toString() ?? '';
-                    final String vetName =
-                        vet['nombreCompleto']?.toString() ??
-                            'Veterinario';
-
+                  items: _farmers
+                      .map<DropdownMenuItem<String>>((farmer) {
+                    final farmerId = farmer['uid']?.toString() ?? '';
+                    final displayName = _getFarmerDisplayName(farmer) ?? 'Ganadero';
                     return DropdownMenuItem<String>(
-                      value: vetId,
-                      child: Text(vetName),
+                      value: farmerId,
+                      child: Text(displayName),
                     );
                   }).toList(),
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
-                      _selectedVet = value;
+                      _selectedFarmerId = value;
+                      _animals = [];
+                      _selectedAnimal = null;
                     });
+
+                    if (value != null && value.isNotEmpty) {
+                      final animals = await _firestoreService.getFarmerAnimals(value);
+                      if (!mounted) return;
+                      setState(() => _animals = animals);
+                    }
                   },
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Selecciona un veterinario';
+                      return 'Selecciona un ganadero';
                     }
                     return null;
                   },
@@ -269,7 +300,44 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
                 const SizedBox(height: 20),
 
-                // Animal
+                const Text(
+                  'Veterinario',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                TextFormField(
+                  initialValue: (() {
+                    if (_selectedVet == null || _selectedVet!.isEmpty) return '';
+                    final vet = _vets.cast<Map<String, dynamic>>().firstWhere(
+                          (v) => (v['uid']?.toString() ?? v['id']?.toString() ?? '') ==
+                              _selectedVet,
+                          orElse: () => <String, dynamic>{},
+                        );
+                    return vet.isEmpty ? _selectedVet! : _getVetDisplayName(vet);
+                  })(),
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  validator: (value) {
+                    if (_selectedVet == null || _selectedVet!.isEmpty) {
+                      return 'Veterinario no disponible';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
                 const Text(
                   'Animal',
                   style: TextStyle(
@@ -277,7 +345,6 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
                 const SizedBox(height: 8),
 
                 DropdownButtonFormField<String>(
@@ -293,19 +360,13 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                   ),
                   items: _animals
                       .map<DropdownMenuItem<String>>((animal) {
-                    final String animalName =
-                        animal['nombre']?.toString() ?? 'Animal';
-
+                    final animalName = animal['nombre']?.toString() ?? 'Animal';
                     return DropdownMenuItem<String>(
                       value: animalName,
                       child: Text(animalName),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAnimal = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _selectedAnimal = value),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Selecciona un animal';
@@ -316,7 +377,6 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
                 const SizedBox(height: 20),
 
-                // Servicio
                 const Text(
                   'Tipo de Servicio',
                   style: TextStyle(
@@ -324,7 +384,6 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-
                 const SizedBox(height: 8),
 
                 DropdownButtonFormField<String>(
@@ -345,11 +404,7 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                       child: Text(service),
                     );
                   }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedService = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _selectedService = value),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Selecciona un servicio';
@@ -360,7 +415,37 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
                 const SizedBox(height: 20),
 
-                // Fecha
+                const Text(
+                  'Descripción de la cita',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                TextFormField(
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Describe el problema o lo que necesitas del veterinario',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    prefixIcon: const Icon(Icons.description_outlined),
+                  ),
+                  validator: (value) {
+                    final v = value?.trim() ?? '';
+                    if (v.isEmpty) return 'Agrega una descripción';
+                    if (v.length < 5) return 'La descripción es muy corta';
+                    return null;
+                  },
+                  onChanged: (v) => _descripcion = v.trim(),
+                ),
+
+                const SizedBox(height: 20),
+
                 GestureDetector(
                   onTap: _selectDate,
                   child: Container(
@@ -376,9 +461,7 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     child: Row(
                       children: [
                         const Icon(Icons.calendar_today),
-
                         const SizedBox(width: 12),
-
                         Expanded(
                           child: Text(
                             _selectedDate == null
@@ -393,7 +476,6 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
                 const SizedBox(height: 20),
 
-                // Hora
                 GestureDetector(
                   onTap: _selectTime,
                   child: Container(
@@ -409,9 +491,7 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     child: Row(
                       children: [
                         const Icon(Icons.schedule),
-
                         const SizedBox(width: 12),
-
                         Expanded(
                           child: Text(
                             _selectedTime == null
@@ -429,24 +509,18 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        _isLoading ? null : _saveAppointment,
+                    onPressed: _isLoading ? null : _saveAppointment,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF3A736A),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                      ),
+                      backgroundColor: const Color(0xFF3A736A),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
                             color: Colors.white,
                           )
                         : const Text(
-                            'Agendar Cita',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
+                            'Solicitar Cita',
+                            style: TextStyle(color: Colors.white),
                           ),
                   ),
                 ),
@@ -458,3 +532,4 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
     );
   }
 }
+
