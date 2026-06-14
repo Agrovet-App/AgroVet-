@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agrovet/utils/app_theme.dart';
 
 class MyFarmScreen extends StatefulWidget {
   const MyFarmScreen({super.key}); // Nombre del constructor corregido
@@ -36,17 +37,17 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF3A736A).withOpacity(0.2), width: 2),
+                      border: Border.all(color: AppColors.primary.withOpacity(0.25), width: 2),
                     ),
                     child: const CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.pets, size: 40, color: Color(0xFF3A736A)),
+                      child: Icon(Icons.pets, size: 40, color: AppColors.primary),
                     ),
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: const Text('+ Agregar foto', style: TextStyle(color: Color(0xFF3A736A))),
+                    child: const Text('+ Agregar foto', style: TextStyle(color: AppColors.primary)),
                   ),
                 ],
               ),
@@ -106,7 +107,7 @@ class _MyFarmScreenState extends State<MyFarmScreen> {
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF3A736A),
+                  backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),

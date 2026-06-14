@@ -44,6 +44,10 @@ dependencies:
   cloud_firestore: ^5.0.0
   firebase_auth: ^5.0.0
 
+  # Social sign-in
+  google_sign_in: ^6.1.0
+  flutter_facebook_auth: ^5.0.0
+
   # UUID
   uuid: ^4.0.0
 

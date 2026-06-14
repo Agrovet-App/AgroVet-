@@ -173,6 +173,7 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registro - Ganadero'),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -180,287 +181,271 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
           },
         ),
       ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Información Sociodemográfica',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withOpacity(0.05),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-
-                Center(
+                child: Form(
+                  key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage:
-                            _image != null ? FileImage(_image!) : null,
-                        child: _image == null
-                            ? const Icon(Icons.camera_alt, size: 40)
-                            : null,
+                      const Text(
+                        'Información Sociodemográfica',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.black,
+                        ),
                       ),
-                      TextButton(
-                        onPressed: _pickImage,
-                        child: const Text('Seleccionar Foto'),
+                      const SizedBox(height: 18),
+                      Center(
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 52,
+                              backgroundColor:
+                                  AppColors.primary.withOpacity(0.12),
+                              backgroundImage:
+                                  _image != null ? FileImage(_image!) : null,
+                              child: _image == null
+                                  ? const Icon(
+                                      Icons.camera_alt,
+                                      size: 42,
+                                      color: AppColors.primary,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: _pickImage,
+                              child: const Text('Seleccionar Foto'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre completo',
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre es requerido';
+                          }
+                          if (value.length < 3) {
+                            return 'El nombre debe tener al menos 3 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo electrónico',
+                          prefixIcon: Icon(Icons.email),
+                        ),
+                        validator: Validators.validateEmail,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Contraseña',
+                          prefixIcon: Icon(Icons.lock),
+                        ),
+                        validator: Validators.validatePassword,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Edad (años)',
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'La edad es requerida';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Ingrese un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedSex,
+                        decoration: const InputDecoration(
+                          labelText: 'Sexo',
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        items: sexOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedSex = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Seleccione su sexo';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedEducation,
+                        decoration: const InputDecoration(
+                          labelText: 'Nivel educativo',
+                          prefixIcon: Icon(Icons.school),
+                        ),
+                        items: educationOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedEducation = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Seleccione su nivel educativo';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _veredaController,
+                        decoration: const InputDecoration(
+                          labelText: 'Vereda',
+                          prefixIcon: Icon(Icons.location_on),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'La vereda es requerida';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono',
+                          prefixIcon: Icon(Icons.phone),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El teléfono es requerido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(
+                          labelText: 'Dirección',
+                          prefixIcon: Icon(Icons.home),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'La dirección es requerida';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _yearsController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Años en actividad pecuaria',
+                          prefixIcon: Icon(Icons.timer),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Este campo es requerido';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Ingrese un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _predioDiameterController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Tamaño del predio (hectáreas)',
+                          prefixIcon: Icon(Icons.agriculture),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El tamaño del predio es requerido';
+                          }
+                          if (double.tryParse(value) == null) {
+                            return 'Ingrese un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Registrarse'),
+                        ),
                       ),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Name
-
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre Completo',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre es requerido';
-                    }
-                    if (value.length < 3) {
-                      return 'El nombre debe tener al menos 3 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Email
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo Electrónico',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 16),
-
-                // Password
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  validator: Validators.validatePassword,
-                ),
-                const SizedBox(height: 20),
-
-                // Age
-                TextFormField(
-                  controller: _ageController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Edad (años)',
-                    prefixIcon: Icon(Icons.calendar_today),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La edad es requerida';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Ingrese un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Sex
-                DropdownButtonFormField<String>(
-                  value: _selectedSex,
-                  decoration: const InputDecoration(
-                    labelText: 'Sexo',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  items: sexOptions.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedSex = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Seleccione su sexo';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Education Level
-                DropdownButtonFormField<String>(
-                  value: _selectedEducation,
-                  decoration: const InputDecoration(
-                    labelText: 'Nivel Educativo',
-                    prefixIcon: Icon(Icons.school),
-                  ),
-                  items: educationOptions.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedEducation = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Seleccione su nivel educativo';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Vereda
-                TextFormField(
-                  controller: _veredaController,
-                  decoration: const InputDecoration(
-                    labelText: 'Vereda',
-                    prefixIcon: Icon(Icons.location_on),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La vereda es requerida';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Teléfono
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El teléfono es requerido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Dirección
-                TextFormField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(
-                    labelText: 'Dirección',
-                    prefixIcon: Icon(Icons.home),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La dirección es requerida';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Years in activity
-                TextFormField(
-                  controller: _yearsController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: '¿Cuántos años lleva en actividad pecuaria?',
-                    prefixIcon: Icon(Icons.timer),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Este campo es requerido';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Ingrese un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Farm size
-                TextFormField(
-                  controller: _predioDiameterController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Tamaño del predio (hectáreas)',
-                    prefixIcon: Icon(Icons.agriculture),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El tamaño del predio es requerido';
-                    }
-                    if (double.tryParse(value) == null) {
-                      return 'Ingrese un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Register Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Registrarse',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

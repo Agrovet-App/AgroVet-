@@ -60,59 +60,87 @@ class _ManageAppointmentsScreenState extends State<ManageAppointmentsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Gestionar Citas'),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Calendario
-              _buildCalendar(),
-              const SizedBox(height: 32),
-
-              // Próximas citas
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'PRÓXIMAS CITAS',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gray,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const FaIcon(
-                      FontAwesomeIcons.plus,
-                      size: 16,
-                      color: AppColors.primary,
-                    ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withOpacity(0.04),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Lista de citas
-              ..._upcomingAppointments.map((appointment) {
-                return _buildAppointmentCard(appointment);
-              }).toList(),
-
-              const SizedBox(height: 20),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Próximas citas',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Revisa la agenda y selecciona un día para ver los detalles.',
+                    style: TextStyle(color: AppColors.gray),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildCalendar(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Citas programadas',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const FaIcon(
+                    FontAwesomeIcons.plus,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ..._upcomingAppointments.map((appointment) {
+              return _buildAppointmentCard(appointment);
+            }).toList(),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -292,8 +320,7 @@ class _ManageAppointmentsScreenState extends State<ManageAppointmentsScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (typeColors[appointment.type] ?? Colors.blue)
-              .withValues(alpha: 0.3),
+          color: (typeColors[appointment.type] ?? Colors.blue).withOpacity(0.3),
           width: 1.5,
         ),
       ),
@@ -366,7 +393,7 @@ class _ManageAppointmentsScreenState extends State<ManageAppointmentsScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

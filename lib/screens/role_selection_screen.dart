@@ -8,63 +8,102 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 32),
-                
-                // Title
-                const Text(
-                  'Bienvenido a AgroVet',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.18),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                
-                // Subtitle
-                const Text(
-                  'Plataforma de Telemedicina Veterinaria',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: AppColors.gray,
-                  ),
+                child: Column(
+                  children: const [
+                    Text(
+                      'Bienvenido a AgroVet',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Tu plataforma para gestionar animales, citas y salud de la granja.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 64),
-
-                // Login Button
-                _buildActionButton(
-                  context,
-                  icon: FontAwesomeIcons.signInAlt,
-                  title: 'Iniciar Sesión',
-                  description: 'Accede a tu cuenta',
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/account_type_login');
-                  },
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-
-                // Register Button
-                _buildActionButton(
-                  context,
-                  icon: FontAwesomeIcons.userPlus,
-                  title: 'Crear Cuenta',
-                  description: 'Regístrate en AgroVet',
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/account_type_register');
-                  },
+                child: Column(
+                  children: [
+                    const Text(
+                      'Selecciona una opción',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildActionButton(
+                      context,
+                      icon: FontAwesomeIcons.signInAlt,
+                      title: 'Iniciar Sesión',
+                      description: 'Accede a tu cuenta',
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/account_type_login');
+                      },
+                    ),
+                    const SizedBox(height: 18),
+                    _buildActionButton(
+                      context,
+                      icon: FontAwesomeIcons.userPlus,
+                      title: 'Crear Cuenta',
+                      description: 'Regístrate en AgroVet',
+                      onTap: () {
+                        Navigator.of(context).pushNamed('/account_type_register');
+                      },
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

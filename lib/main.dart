@@ -19,8 +19,6 @@ import 'package:agrovet/screens/manage_appointment_screen.dart';
 import 'package:agrovet/screens/call_veterinarian_screen.dart';
 import 'package:agrovet/screens/register_animal_screen.dart';
 import 'package:agrovet/utils/app_theme.dart';
-import 'package:agrovet/screens/home_farmer_screen.dart';
-import 'package:agrovet/screens/my_farm_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

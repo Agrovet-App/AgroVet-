@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
 
@@ -131,128 +132,226 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
             "¡Hola de nuevo!",
             style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
-          const SizedBox(height: 20),
-
-          // Tarjeta de Total de Ganado - Cargando desde BD
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _firestoreService.getFarmerAnimals(_farmerId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3A736A),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-                );
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              final animals = snapshot.data!;
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3A736A),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF3A736A).withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8),
-                    )
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Total de ganado",
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "${animals.length} Animales",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.pets, color: Colors.white, size: 30),
-                    )
-                  ],
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 32),
-
-          // Sección de Veterinario
+          const SizedBox(height: 6),
           const Text(
-            "SERVICIOS VETERINARIOS",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-              letterSpacing: 1.2,
+            "Gestiona tu granja con rapidez y claridad.",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 22),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.22),
+                  blurRadius: 24,
+                  offset: const Offset(0, 14),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Resumen rápido',
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Tu granja siempre a la vista',
+                  style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 18),
+                Row(
+                  children: const [
+                    Icon(Icons.health_and_safety, color: Colors.white, size: 28),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Revisa tu ganado y recibe notificaciones de citas en un solo lugar.',
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSummaryCards(),
+          const SizedBox(height: 26),
+          _buildSectionHeader('Acciones rápidas', 'Encuentra lo que necesitas en un toque'),
           const SizedBox(height: 16),
-
-          // Botón 1: Citas Pendientes
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _firestoreService.getFarmerAppointments(_farmerId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox.shrink();
-              }
-
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              final appointments = snapshot.data!;
-              return _buildActionCard(
-                title: "Citas Pendientes",
-                subtitle: "Tienes ${appointments.length} ${appointments.length == 1 ? 'cita' : 'citas'}",
-                icon: Icons.assignment_outlined,
-                color: Colors.blue.shade400,
-                onTap: () => _onTabTapped(1),
-              );
-            },
+          _buildActionCard(
+            title: "Citas Pendientes",
+            subtitle: "Revisa tus próximas visitas con el veterinario",
+            icon: Icons.assignment_outlined,
+            color: Colors.blue.shade400,
+            onTap: () => _onTabTapped(1),
           ),
-
           const SizedBox(height: 16),
-
-          // Botón 2: Comunicación con Veterinario
           _buildActionCard(
             title: "Contactar Veterinario",
-            subtitle: "Chat directo con un experto",
+            subtitle: "Envía un mensaje rápido a tu especialista",
             icon: Icons.chat_bubble_outline,
             color: Colors.orange.shade400,
             onTap: () => _onTabTapped(2),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards() {
+    return FutureBuilder<List<List<Map<String, dynamic>>>>(
+      future: Future.wait<List<Map<String, dynamic>>>([
+        _firestoreService.getFarmerAnimals(_farmerId),
+        _firestoreService.getFarmerAppointments(_farmerId),
+      ]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Row(
+            children: [
+              Expanded(child: _buildLoadingStatCard()),
+              const SizedBox(width: 12),
+              Expanded(child: _buildLoadingStatCard()),
+            ],
+          );
+        }
+
+        final animals = snapshot.data?[0] ?? <Map<String, dynamic>>[];
+        final appointments = snapshot.data?[1] ?? <Map<String, dynamic>>[];
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                label: 'Animales',
+                value: animals.length.toString(),
+                icon: Icons.pets,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                label: 'Citas',
+                value: appointments.length.toString(),
+                icon: Icons.calendar_today,
+                color: AppColors.accent,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.16),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: color, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, String subtitle) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Text(
+            'Nuevo',
+            style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingStatCard() {
+    return Container(
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withOpacity(0.05)),
+      ),
+      child: const Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       ),
     );
   }
@@ -265,43 +364,56 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.black.withOpacity(0.05)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(15),
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.black.withOpacity(0.04)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
               ),
-              child: Icon(icon, color: color),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.grey, fontSize: 13),
-                  ),
-                ],
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Icon(icon, color: color, size: 26),
               ),
-            ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
+          ),
         ),
       ),
     );
@@ -378,98 +490,106 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
     final String hora = appointment['hora'] ?? 'Hora no especificada';
     final String vetNombre = appointment['veterinarioNombre'] ?? 'Veterinario';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      child: InkWell(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3A736A).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      (fecha?.day ?? 1).toString(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF3A736A),
-                      ),
-                    ),
-                    Text(
-                      _getMonthName(fecha?.month ?? 1),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF3A736A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      titulo,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      animal,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.grey),
+        onTap: () => _showAppointmentDetails(context, appointment),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              )
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.schedule, size: 16, color: Colors.grey.shade600),
-              const SizedBox(width: 8),
-              Text(
-                hora,
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3A736A).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          (fecha?.day ?? 1).toString(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF3A736A),
+                          ),
+                        ),
+                        Text(
+                          _getMonthName(fecha?.month ?? 1),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF3A736A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          titulo,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          animal,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Colors.grey),
+                ],
               ),
-              const SizedBox(width: 16),
-              Icon(Icons.person, size: 16, color: Colors.grey.shade600),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  vetNombre,
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 16, color: Colors.grey.shade600),
+                  const SizedBox(width: 8),
+                  Text(
+                    hora,
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                  ),
+                  const SizedBox(width: 16),
+                  Icon(Icons.person, size: 16, color: Colors.grey.shade600),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      vetNombre,
+                      style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -648,65 +768,307 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
     );
   }
 
+  void _showAnimalDetails(BuildContext context, Map<String, dynamic> animal) {
+    final String nombre = animal['nombre'] ?? 'Animal sin nombre';
+    final String especie = animal['especie'] ?? 'Desconocida';
+    final String raza = animal['raza'] ?? 'N/A';
+    final String edad = animal['edad']?.toString() ?? '0';
+    final String peso = animal['peso']?.toString() ?? 'N/A';
+    final String sexo = animal['sexo'] ?? 'Desconocido';
+    final String notas = animal['notasMedicas'] ?? 'Sin notas adicionales';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.58,
+            minChildSize: 0.3,
+            maxChildSize: 0.88,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  24,
+                  24,
+                  24 + MediaQuery.of(context).viewPadding.bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 48,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      nombre,
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      '$especie • $raza',
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        _detailChip('Edad', '$edad años'),
+                        const SizedBox(width: 10),
+                        _detailChip('Sexo', sexo),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        _detailChip('Peso', '$peso kg'),
+                        const SizedBox(width: 10),
+                        _detailChip('Raza', raza),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Notas médicas',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      notas,
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF3A736A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: const Text('Cerrar'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailChip(String label, String value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAppointmentDetails(BuildContext context, Map<String, dynamic> appointment) {
+    final DateTime fecha = (appointment['fecha'] as dynamic)?.toDate() ?? DateTime.now();
+    final String titulo = appointment['servicio'] ?? 'Cita';
+    final String animal = appointment['animal'] ?? 'Animal';
+    final String hora = appointment['hora'] ?? 'Hora no especificada';
+    final String vetNombre = appointment['veterinarioNombre'] ?? 'Veterinario';
+    final String notas = appointment['notas'] ?? appointment['descripcion'] ?? 'Sin notas adicionales';
+    final String estado = appointment['estado'] ?? 'pendiente';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.52,
+          minChildSize: 0.38,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: 50,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: 18),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const Text(
+                      'Detalle de la cita',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      titulo,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Estado: ${estado.toUpperCase()}',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _detailChip('Animal', animal),
+                        const SizedBox(width: 12),
+                        _detailChip('Veterinario', vetNombre),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        _detailChip('Fecha', '${fecha.day}/${fecha.month}/${fecha.year}'),
+                        const SizedBox(width: 12),
+                        _detailChip('Hora', hora),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Notas',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      notas,
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3A736A),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('Cerrar'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildAnimalCard(Map<String, dynamic> animal, int index) {
     final String nombre = animal['nombre'] ?? 'Animal ${index + 1}';
     final String especie = animal['especie'] ?? 'Desconocida';
     final String raza = animal['raza'] ?? 'N/A';
     final String edad = animal['edad']?.toString() ?? '0';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+      elevation: 0,
+      child: InkWell(
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFF3A736A).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(
-              especie.toLowerCase() == 'vaca' ? Icons.pets : Icons.agriculture,
-              color: const Color(0xFF3A736A),
-              size: 32,
-            ),
+        onTap: () => _showAnimalDetails(context, animal),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              )
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  nombre,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF3A736A).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$especie • $raza',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                child: Icon(
+                  especie.toLowerCase() == 'vaca' ? Icons.pets : Icons.agriculture,
+                  color: const Color(0xFF3A736A),
+                  size: 32,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Edad: $edad años',
-                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nombre,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$especie • $raza',
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Edad: $edad años',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.grey),
+            ],
           ),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
+        ),
       ),
     );
   }

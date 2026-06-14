@@ -68,92 +68,177 @@ class _ViewAnimalsScreenState extends State<ViewAnimalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Animales Registrados',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryLight],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
               ),
-            )
-          : _errorMessage.isNotEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      const Icon(Icons.error_outline,
-                          size: 60, color: Colors.red),
-                      const SizedBox(height: 16),
-                      Text(
-                        _errorMessage,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 16,
+                      GestureDetector(
+                        onTap: () => Navigator.of(context).pop(),
+                        child: const CircleAvatar(
+                          backgroundColor: Colors.white24,
+                          child: Icon(Icons.arrow_back, color: Colors.white),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadAnimals,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 12,
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: Text(
+                          'Animales Registrados',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        child: const Text(
-                          'Reintentar',
-                          style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ],
                   ),
-                )
-              : _animals.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FaIcon(
-                            FontAwesomeIcons.cow,
-                            size: 80,
-                            color: AppColors.primary.withOpacity(0.3),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No hay animales registrados',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadAnimals,
-                      color: AppColors.primary,
-                      child: ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _animals.length,
-                        itemBuilder: (context, index) {
-                          final animal = _animals[index];
-                          return _buildAnimalCard(context, animal);
-                        },
-                      ),
+                  const SizedBox(height: 14),
+                  Text(
+                    _animals.isNotEmpty
+                        ? 'Explora tu ganado y conoce sus detalles'
+                        : 'No hay animales todavía. Agrega el primero!',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
                     ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Total de animales',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${_animals.length}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Icon(
+                          Icons.pets,
+                          size: 36,
+                          color: Colors.white,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : _errorMessage.isNotEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.error_outline,
+                                  size: 60, color: AppColors.danger),
+                              const SizedBox(height: 16),
+                              Text(
+                                _errorMessage,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: AppColors.danger,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _loadAnimals,
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                    vertical: 14,
+                                  ),
+                                ),
+                                child: const Text('Reintentar'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _animals.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  FaIcon(
+                                    FontAwesomeIcons.cow,
+                                    size: 80,
+                                    color: AppColors.primary.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No hay animales registrados',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: AppColors.gray,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : RefreshIndicator(
+                              onRefresh: _loadAnimals,
+                              color: AppColors.primary,
+                              edgeOffset: 20,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.only(top: 0),
+                                itemCount: _animals.length,
+                                itemBuilder: (context, index) {
+                                  final animal = _animals[index];
+                                  return _buildAnimalCard(context, animal);
+                                },
+                              ),
+                            ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -237,7 +322,7 @@ class _ViewAnimalsScreenState extends State<ViewAnimalsScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Edad: $edad años • Peso: ${peso}kg',
+                          'Edad: $edad años • Peso: ${peso}kg • Sexo: $sexo',
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[500],

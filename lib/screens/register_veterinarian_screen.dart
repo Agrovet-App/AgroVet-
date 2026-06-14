@@ -6,7 +6,6 @@ import 'package:agrovet/utils/validators.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 class RegisterVeterinarianScreen extends StatefulWidget {
 
@@ -205,8 +204,10 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+
       appBar: AppBar(
         title: const Text('Registro - Veterinario'),
+        backgroundColor: AppColors.primary,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -214,207 +215,200 @@ class _RegisterVeterinarianScreenState extends State<RegisterVeterinarianScreen>
           },
         ),
       ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Información Profesional',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
-                  ),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.black.withOpacity(0.05),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 20),
-
-                Center(
+                child: Form(
+                  key: _formKey,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundImage:
-                            _imageBytes != null ? MemoryImage(_imageBytes!) : null,
-                        child: _imageBytes == null
-                            ? const Icon(Icons.camera_alt, size: 40)
-                            : null,
+                      const Text(
+                        'Información Profesional',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.black,
+                        ),
                       ),
-                      TextButton(
-                        onPressed: _pickImage,
-                        child: const Text('Seleccionar Foto'),
+                      const SizedBox(height: 18),
+                      Center(
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 52,
+                              backgroundColor:
+                                  AppColors.primary.withOpacity(0.12),
+                              backgroundImage: _imageBytes != null
+                                  ? MemoryImage(_imageBytes!)
+                                  : null,
+                              child: _imageBytes == null
+                                  ? const Icon(
+                                      Icons.camera_alt,
+                                      size: 42,
+                                      color: AppColors.primary,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: _pickImage,
+                              child: const Text('Seleccionar Foto'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre completo',
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre es requerido';
+                          }
+                          if (value.length < 3) {
+                            return 'El nombre debe tener al menos 3 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Correo electrónico',
+                          prefixIcon: Icon(Icons.email),
+                        ),
+                        validator: Validators.validateEmail,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Contraseña',
+                          prefixIcon: Icon(Icons.lock),
+                        ),
+                        validator: Validators.validatePassword,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _professionalIdController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Número de Cédula Profesional',
+                          prefixIcon: Icon(Icons.badge),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'La cédula profesional es requerida';
+                          }
+                          if (value.length < 6) {
+                            return 'Ingrese un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono',
+                          prefixIcon: Icon(Icons.phone),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El teléfono es requerido';
+                          }
+                          if (value.length < 7) {
+                            return 'Ingrese un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _clinicNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre de Clínica/Consultorio',
+                          prefixIcon: Icon(Icons.local_hospital),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre de la clínica es requerido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: _selectedSpecialty,
+                        decoration: const InputDecoration(
+                          labelText: 'Especialidad',
+                          prefixIcon: Icon(Icons.medical_services),
+                        ),
+                        items: specialties.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedSpecialty = newValue;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Seleccione su especialidad';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 28),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _register,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Registrarse'),
+                        ),
                       ),
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 16),
-
-                // Full Name
-
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre Completo',
-                    prefixIcon: Icon(Icons.person),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre es requerido';
-                    }
-                    if (value.length < 3) {
-                      return 'El nombre debe tener al menos 3 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Email
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo Electrónico',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                  validator: Validators.validateEmail,
-                ),
-                const SizedBox(height: 16),
-
-                // Password
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Contraseña',
-                    prefixIcon: Icon(Icons.lock),
-                  ),
-                  validator: Validators.validatePassword,
-                ),
-                const SizedBox(height: 16),
-
-                // Professional ID
-                TextFormField(
-                  controller: _professionalIdController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de Cédula Profesional',
-                    prefixIcon: Icon(Icons.badge),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La cédula profesional es requerida';
-                    }
-                    if (value.length < 6) {
-                      return 'Ingrese un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Phone
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Teléfono',
-                    prefixIcon: Icon(Icons.phone),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El teléfono es requerido';
-                    }
-                    if (value.length < 7) {
-                      return 'Ingrese un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Clinic/Office Name
-                TextFormField(
-                  controller: _clinicNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre de Clínica/Consultorio',
-                    prefixIcon: Icon(Icons.local_hospital),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El nombre de la clínica es requerido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Specialty
-                DropdownButtonFormField<String>(
-                  value: _selectedSpecialty,
-                  decoration: const InputDecoration(
-                    labelText: 'Especialidad',
-                    prefixIcon: Icon(Icons.medical_services),
-                  ),
-                  items: specialties.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedSpecialty = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Seleccione su especialidad';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-
-                // Register Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Registrarse',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

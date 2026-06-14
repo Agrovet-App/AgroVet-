@@ -1,4 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -31,6 +35,72 @@ class AuthService {
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthError(e);
+    }
+  }
+
+  // Sign in with Google (web + mobile)
+  Future<User?> signInWithGoogle() async {
+    try {
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        UserCredential result = await _auth.signInWithPopup(provider);
+        return result.user;
+      } else {
+        final GoogleSignIn googleSignIn = GoogleSignIn();
+        final GoogleSignInAccount? account = await googleSignIn.signIn();
+        if (account == null) return null;
+        final googleAuth = await account.authentication;
+        final credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        UserCredential result = await _auth.signInWithCredential(credential);
+        return result.user;
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    } catch (e) {
+      throw Exception('Error en Google Sign-In: $e');
+    }
+  }
+
+  // Sign in with Facebook (web + mobile)
+  Future<User?> signInWithFacebook() async {
+    try {
+      if (kIsWeb) {
+        final provider = FacebookAuthProvider();
+        UserCredential result = await _auth.signInWithPopup(provider);
+        return result.user;
+      } else {
+        final LoginResult loginResult = await FacebookAuth.instance.login();
+        if (loginResult.status != LoginStatus.success) return null;
+        final accessToken = loginResult.accessToken?.token;
+        if (accessToken == null) return null;
+        final credential = FacebookAuthProvider.credential(accessToken);
+        UserCredential result = await _auth.signInWithCredential(credential);
+        return result.user;
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    } catch (e) {
+      throw Exception('Error en Facebook Sign-In: $e');
+    }
+  }
+
+  // Sign in with GitHub (web). Mobile requires extra OAuth handling in Firebase console.
+  Future<User?> signInWithGitHub() async {
+    try {
+      if (kIsWeb) {
+        final provider = OAuthProvider('github.com');
+        UserCredential result = await _auth.signInWithPopup(provider);
+        return result.user;
+      } else {
+        throw Exception('GitHub sign-in en móviles requiere configuración adicional en Firebase Console.');
+      }
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthError(e);
+    } catch (e) {
+      throw Exception('Error en GitHub Sign-In: $e');
     }
   }
 

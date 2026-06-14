@@ -28,6 +28,7 @@ class AccountTypeSelectionScreen extends StatelessWidget {
     final String title = action == 'login' ? 'Iniciar Sesión' : 'Crear Cuenta';
     
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(title),
         leading: IconButton(
@@ -38,47 +39,67 @@ class AccountTypeSelectionScreen extends StatelessWidget {
         ),
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 32),
-                
-                // Title
-                const Text(
-                  '¿Qué tipo de cuenta eres?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.black,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryLight],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.18),
+                      blurRadius: 20,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 48),
-
-                // Veterinarian Card
-                _buildRoleCard(
-                  context,
-                  icon: FontAwesomeIcons.stethoscope,
-                  title: 'Veterinario',
-                  description: 'Acceso profesional veterinario',
-                  role: UserRole.veterinarian,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      '¿Qué tipo de cuenta eres?',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Selecciona el rol correcto para tu experiencia en AgroVet.',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-
-                // Farmer/Ganadero Card
-                _buildRoleCard(
-                  context,
-                  icon: FontAwesomeIcons.leaf,
-                  title: 'Ganadero',
-                  description: 'Acceso para ganaderos y productores',
-                  role: UserRole.farmer,
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 32),
+              _buildRoleCard(
+                context,
+                icon: FontAwesomeIcons.stethoscope,
+                title: 'Veterinario',
+                description: 'Acceso profesional veterinario',
+                role: UserRole.veterinarian,
+              ),
+              const SizedBox(height: 20),
+              _buildRoleCard(
+                context,
+                icon: FontAwesomeIcons.leaf,
+                title: 'Ganadero',
+                description: 'Acceso para ganaderos y productores',
+                role: UserRole.farmer,
+              ),
+            ],
           ),
         ),
       ),
