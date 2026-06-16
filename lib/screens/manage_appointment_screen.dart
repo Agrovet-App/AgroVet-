@@ -1,7 +1,7 @@
-import 'package:agrovet/utils/app_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
+import 'package:agrovet/utils/app_theme.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class ManageAppointmentScreen extends StatefulWidget {
@@ -26,7 +26,10 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+
   bool _isLoading = false;
+  bool _isLoadingData = false;
+  String? _loadError;
 
   List<Map<String, dynamic>> _vets = [];
   List<Map<String, dynamic>> _farmers = [];
@@ -75,10 +78,11 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
       _selectedFarmerId = null;
     } else {
       _loadData();
-      _setLoggedVeterinarian();
     }
   }
 
+  // Función comentada - el veterinario debe ser seleccionado por el usuario en el formulario
+  /*
   Future<void> _setLoggedVeterinarian() async {
     final currentUser = _authService.getCurrentUser();
     if (currentUser == null) return;
@@ -98,29 +102,32 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
       });
     }
   }
+  */
 
   Future<void> _loadData() async {
+    setState(() {
+      _isLoadingData = true;
+      _loadError = null;
+    });
     try {
       final vets = await _firestoreService.getAllVeterinarians();
       final farmers = await _firestoreService.getAllFarmers();
 
-      if (mounted) {
-        setState(() {
-          _vets = vets;
-          _farmers = farmers;
-          _animals = [];
-          _selectedAnimal = null;
-        });
-      }
+      if (!mounted) return;
+
+      setState(() {
+        _vets = vets;
+        _farmers = farmers;
+        _animals = [];
+        _selectedAnimal = null;
+        _isLoadingData = false;
+      });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al cargar datos: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        _isLoadingData = false;
+        _loadError = e.toString();
+      });
     }
   }
 
@@ -253,214 +260,330 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Solicitar Cita',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    const Text(
-                      'Selecciona los detalles para tu próxima atención veterinaria.',
-                      style: TextStyle(color: AppColors.gray),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDropdownSection(
-                      label: 'Ganadero',
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedFarmerId,
-                        decoration: InputDecoration(
-                          hintText: 'Selecciona un ganadero',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          prefixIcon: const Icon(Icons.person_outline),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Solicitar Cita',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.black,
                         ),
-                        items: _farmers
-                            .map<DropdownMenuItem<String>>((farmer) {
-                          final farmerId = farmer['uid']?.toString() ?? '';
-                          final displayName = _getFarmerDisplayName(farmer) ?? 'Ganadero';
-                          return DropdownMenuItem<String>(
-                            value: farmerId,
-                            child: Text(displayName),
-                          );
-                        }).toList(),
-                        onChanged: (value) async {
-                          setState(() {
-                            _selectedFarmerId = value;
-                            _animals = [];
-                            _selectedAnimal = null;
-                          });
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Selecciona los detalles para tu próxima atención veterinaria.',
+                        style: TextStyle(color: AppColors.gray),
+                      ),
+                      const SizedBox(height: 18),
+                      _buildDropdownSection(
+                        label: 'Ganadero',
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedFarmerId,
+                          decoration: InputDecoration(
+                            hintText: 'Selecciona un ganadero',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            prefixIcon: const Icon(Icons.person_outline),
+                          ),
+                          items: _farmers
+                              .map<DropdownMenuItem<String>>((farmer) {
+                            final farmerId = farmer['uid']?.toString() ?? '';
+                            final displayName =
+                                _getFarmerDisplayName(farmer) ?? 'Ganadero';
+                            return DropdownMenuItem<String>(
+                              value: farmerId,
+                              child: Text(displayName),
+                            );
+                          }).toList(),
+                          onChanged: (value) async {
+                            setState(() {
+                              _selectedFarmerId = value;
+                              _animals = [];
+                              _selectedAnimal = null;
+                            });
 
-                          if (value != null && value.isNotEmpty) {
-                            final animals = await _firestoreService.getFarmerAnimals(value);
-                            if (!mounted) return;
-                            setState(() => _animals = animals);
-                          }
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Selecciona un ganadero';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDropdownSection(
-                      label: 'Veterinario',
-                      child: TextFormField(
-                        initialValue: (() {
-                          if (_selectedVet == null || _selectedVet!.isEmpty) return '';
-                          final vet = _vets.cast<Map<String, dynamic>>().firstWhere(
-                                (v) => (v['uid']?.toString() ?? v['id']?.toString() ?? '') ==
-                                    _selectedVet,
-                                orElse: () => <String, dynamic>{},
-                              );
-                          return vet.isEmpty ? _selectedVet! : _getVetDisplayName(vet);
-                        })(),
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          prefixIcon: const Icon(Icons.person_outline),
+                            if (value != null && value.isNotEmpty) {
+                              final animals =
+                                  await _firestoreService.getFarmerAnimals(value);
+                              if (!mounted) return;
+                              setState(() => _animals = animals);
+                            }
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Selecciona un ganadero';
+                            }
+                            return null;
+                          },
                         ),
-                        validator: (value) {
-                          if (_selectedVet == null || _selectedVet!.isEmpty) {
-                            return 'Veterinario no disponible';
-                          }
-                          return null;
-                        },
                       ),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDropdownSection(
-                      label: 'Animal',
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedAnimal,
-                        decoration: InputDecoration(
-                          hintText: 'Selecciona un animal',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          prefixIcon: const Icon(Icons.pets),
-                        ),
-                        items: _animals.map<DropdownMenuItem<String>>((animal) {
-                          final animalName = animal['nombre']?.toString() ?? 'Animal';
-                          return DropdownMenuItem<String>(
-                            value: animalName,
-                            child: Text(animalName),
-                          );
-                        }).toList(),
-                        onChanged: (value) => setState(() => _selectedAnimal = value),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Selecciona un animal';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDropdownSection(
-                      label: 'Tipo de Servicio',
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedService,
-                        decoration: InputDecoration(
-                          hintText: 'Selecciona el servicio',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          prefixIcon: const Icon(Icons.medical_services),
-                        ),
-                        items: _services.map<DropdownMenuItem<String>>((service) {
-                          return DropdownMenuItem<String>(
-                            value: service,
-                            child: Text(service),
-                          );
-                        }).toList(),
-                        onChanged: (value) => setState(() => _selectedService = value),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Selecciona un servicio';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDropdownSection(
-                      label: 'Descripción de la cita',
-                      child: TextFormField(
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          hintText: 'Describe el problema o lo que necesitas del veterinario',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          prefixIcon: const Icon(Icons.description_outlined),
-                        ),
-                        validator: (value) {
-                          final v = value?.trim() ?? '';
-                          if (v.isEmpty) return 'Agrega una descripción';
-                          if (v.length < 5) return 'La descripción es muy corta';
-                          return null;
-                        },
-                        onChanged: (v) => _descripcion = v.trim(),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    _buildDateTimeSelector(
-                      label: 'Fecha',
-                      value: _selectedDate == null
-                          ? 'Selecciona una fecha'
-                          : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
-                      icon: Icons.calendar_today,
-                      onTap: _selectDate,
-                    ),
-                    const SizedBox(height: 14),
-                    _buildDateTimeSelector(
-                      label: 'Hora',
-                      value: _selectedTime == null
-                          ? 'Selecciona una hora'
-                          : '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
-                      icon: Icons.schedule,
-                      onTap: _selectTime,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveAppointment,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                      const SizedBox(height: 18),
+                      _buildDropdownSection(
+                        label: 'Veterinario',
+                        child: _isLoadingData
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 14),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(color: Colors.grey.shade300),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Text('Cargando veterinarios...'),
+                                    ),
+                                  ],
+                                ),
                               )
-                            : const Text('Solicitar Cita'),
+                            : _loadError != null
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                          color: Colors.red.shade300),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.error_outline,
+                                            color: Colors.red.shade700),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: GestureDetector(
+                                            onTap: _loadData,
+                                            child: Text(
+                                              'Error. Toca para reintentar',
+                                              style: TextStyle(
+                                                  color: Colors.red.shade700,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : _vets.isEmpty
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade100,
+                                          borderRadius:
+                                              BorderRadius.circular(14),
+                                          border: Border.all(
+                                              color: Colors.grey.shade300),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.person_outline,
+                                                color: AppColors.primary),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: GestureDetector(
+                                                onTap: _loadData,
+                                                child: const Text(
+                                                  'No hay veterinarios. Toca para recargar',
+                                                  style: TextStyle(
+                                                      color:
+                                                          AppColors.primary,
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : DropdownButtonFormField<String?>(
+                                        value: _vets.any((v) =>
+                                                v['uid']?.toString() ==
+                                                _selectedVet)
+                                            ? _selectedVet
+                                            : null,
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              'Selecciona un veterinario',
+                                          border: OutlineInputBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.grey.shade100,
+                                          prefixIcon: const Icon(
+                                              Icons.person_outline),
+                                        ),
+                                        items: _vets
+                                            .map<DropdownMenuItem<String?>>(
+                                                (vet) {
+                                          final vetId =
+                                              vet['uid']?.toString();
+                                          final displayName =
+                                              _getVetDisplayName(vet) ??
+                                                  'Veterinario';
+                                          return DropdownMenuItem<String?>(
+                                            value: vetId,
+                                            child: Text(displayName),
+                                          );
+                                        }).toList(),
+                                        onChanged: (value) {
+                                          setState(
+                                              () => _selectedVet = value);
+                                        },
+                                        validator: (value) {
+                                          if (value == null ||
+                                              value.isEmpty) {
+                                            return 'Selecciona un veterinario';
+                                          }
+                                          return null;
+                                        },
+                                      ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 18),
+                      _buildDropdownSection(
+                        label: 'Animal',
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedAnimal,
+                          decoration: InputDecoration(
+                            hintText: 'Selecciona un animal',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            prefixIcon: const Icon(Icons.pets),
+                          ),
+                          items: _animals.map<DropdownMenuItem<String>>((animal) {
+                            final animalName =
+                                animal['nombre']?.toString() ?? 'Animal';
+                            return DropdownMenuItem<String>(
+                              value: animalName,
+                              child: Text(animalName),
+                            );
+                          }).toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedAnimal = value),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Selecciona un animal';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _buildDropdownSection(
+                        label: 'Tipo de Servicio',
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedService,
+                          decoration: InputDecoration(
+                            hintText: 'Selecciona el servicio',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            prefixIcon:
+                                const Icon(Icons.medical_services),
+                          ),
+                          items: _services
+                              .map<DropdownMenuItem<String>>((service) {
+                            return DropdownMenuItem<String>(
+                              value: service,
+                              child: Text(service),
+                            );
+                          }).toList(),
+                          onChanged: (value) =>
+                              setState(() => _selectedService = value),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Selecciona un servicio';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _buildDropdownSection(
+                        label: 'Descripción de la cita',
+                        child: TextFormField(
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            hintText:
+                                'Describe el problema o lo que necesitas del veterinario',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            prefixIcon:
+                                const Icon(Icons.description_outlined),
+                          ),
+                          validator: (value) {
+                            final v = value?.trim() ?? '';
+                            if (v.isEmpty) return 'Agrega una descripción';
+                            if (v.length < 5) {
+                              return 'La descripción es muy corta';
+                            }
+                            return null;
+                          },
+                          onChanged: (v) => _descripcion = v.trim(),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      _buildDateTimeSelector(
+                        label: 'Fecha',
+                        value: _selectedDate == null
+                            ? 'Selecciona una fecha'
+                            : '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}',
+                        icon: Icons.calendar_today,
+                        onTap: _selectDate,
+                      ),
+                      const SizedBox(height: 14),
+                      _buildDateTimeSelector(
+                        label: 'Hora',
+                        value: _selectedTime == null
+                            ? 'Selecciona una hora'
+                            : '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}',
+                        icon: Icons.schedule,
+                        onTap: _selectTime,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _saveAppointment,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Text('Solicitar Cita'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -497,25 +620,37 @@ class _ManageAppointmentScreenState extends State<ManageAppointmentScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.grey.shade300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.black,
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(value),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.grey.shade300),
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(icon, color: AppColors.primary),
+                const SizedBox(width: 12),
+                Expanded(child: Text(value)),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

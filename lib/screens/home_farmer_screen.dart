@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
+import 'package:agrovet/screens/chat_screen.dart';
 
 class HomeFarmerScreen extends StatefulWidget {
   const HomeFarmerScreen({super.key});
@@ -464,13 +465,28 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
             children: [
               _buildCalendarSection(),
               const SizedBox(height: 24),
-              const Text(
-                'PRÓXIMAS CITAS',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                  fontSize: 12,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'PRÓXIMAS CITAS',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.pushNamed(context, '/manage_appointment'),
+                    icon: const Icon(Icons.add, size: 20),
+                    label: const Text('Nueva Cita'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               ...appointments.map((appointment) {
@@ -629,96 +645,12 @@ class _HomeFarmerScreenState extends State<HomeFarmerScreen> {
 
   // --- VISTA DE CHATS ---
   Widget _buildChatsView() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _firestoreService.getFarmerAppointments(_farmerId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final chats = snapshot.data ?? [];
-
-        if (chats.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade300),
-                const SizedBox(height: 16),
-                const Text(
-                  'No hay conversaciones',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: chats.length,
-          itemBuilder: (context, index) {
-            final chat = chats[index];
-            return _buildChatCard(chat);
-          },
-        );
-      },
-    );
+    // Para el ganadero: poder chatear con veterinarios existentes.
+    return ChatScreen(userId: _farmerId);
   }
 
-  Widget _buildChatCard(Map<String, dynamic> chat) {
-    final String vetName = chat['veterinarioNombre'] ?? 'Veterinario';
-    final String lastMessage = chat['ultimoMensaje'] ?? 'Sin mensajes';
-    final DateTime? fecha = (chat['actualizadoEn'] as dynamic)?.toDate() ?? DateTime.now();
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: const Color(0xFF3A736A).withOpacity(0.2),
-            child: const Icon(Icons.person, color: Color(0xFF3A736A)),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  vetName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  lastMessage,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            '${(fecha?.hour ?? 0).toString().padLeft(2, '0')}:${(fecha?.minute ?? 0).toString().padLeft(2, '0')}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // --- VISTA DE GANADO ---
   Widget _buildCattleView() {

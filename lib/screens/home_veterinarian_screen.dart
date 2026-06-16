@@ -5,9 +5,23 @@ import 'package:agrovet/screens/view_animals_screen.dart';
 import 'package:agrovet/screens/manage_appointment_screen.dart';
 import 'package:agrovet/screens/update_veterinarian_profile_screen.dart';
 import 'package:agrovet/screens/view_veterinarian_appointments_screen.dart';
+import 'package:agrovet/screens/veterinarian_chat_screen.dart';
+import 'package:agrovet/services/auth_service.dart';
+
+
+
+
 
 class HomeVeterinarianScreen extends StatelessWidget {
   const HomeVeterinarianScreen({super.key});
+
+  String _getCurrentVeterinarianId() {
+    // Usa el uid logueado.
+    return AuthService().getCurrentUser()?.uid ?? '';
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +125,19 @@ class HomeVeterinarianScreen extends StatelessWidget {
                   'Ver citas asignadas',
                   () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const ViewVeterinarianAppointmentsScreen()),
+                  ),
+                ),
+                _buildMenuCard(
+                  FontAwesomeIcons.commentDots,
+                  'Chats',
+                  AppColors.primaryVariant,
+                  'Chatea con ganaderos',
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => VeterinarianChatScreen(
+                        veterinarioId: _getCurrentVeterinarianId(),
+                      ),
+                    ),
                   ),
                 ),
               ],
