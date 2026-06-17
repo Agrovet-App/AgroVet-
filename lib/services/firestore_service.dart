@@ -398,7 +398,7 @@ class FirestoreService {
         // En tu modelo, el otro en chats de veterinario es un ganadero, cuyos datos están en `ganaderos/{uid}`.
         try {
           final otherFarmerData = await getFarmerData(otherUserId);
-          data['otherUserName'] = otherFarmerData?.['nombreCompleto']?.toString() ?? otherUserId;
+          data['otherUserName'] = otherFarmerData?['nombreCompleto']?.toString() ?? otherUserId;
         } catch (e) {
           data['otherUserName'] = otherUserId;
         }

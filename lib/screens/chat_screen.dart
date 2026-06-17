@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:agrovet/utils/app_theme.dart';
+import 'package:agrovet/services/auth_service.dart';
 import 'package:agrovet/services/firestore_service.dart';
 import 'package:agrovet/screens/conversation_screen.dart';
 

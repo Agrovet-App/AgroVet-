@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:agrovet/utils/app_theme.dart';
 import 'package:agrovet/utils/validators.dart';
 import 'package:agrovet/services/auth_service.dart';
@@ -78,6 +79,11 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
   }
 
   Future<String> _uploadImage(String uid) async {
+    // En web y algunos targets, firebase_storage + putFile puede fallar con
+    // errores tipo "Unsupported operation: _Namespace".
+    // Para que el registro funcione igual, omitimos el upload.
+    if (kIsWeb) return '';
+
     if (_image == null) return '';
 
     final storageRef = FirebaseStorage.instance
@@ -99,6 +105,8 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
       _isLoading = true;
     });
 
+    debugPrint('RegisterFarmerScreen: starting _register()');
+
     try {
       // Crear usuario en Firebase Auth
       final user = await _authService.registerWithEmailPassword(
@@ -118,9 +126,20 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
 
         final photoUrl = await _uploadImage(user.uid);
 
-        // Guardar datos del ganadero en 'ganaderos'
-        await _firestoreService.saveFarmerData(user.uid, {
+        // Verificar que 'users/{uid}' ya existe y tiene rol='ganadero' antes de escribir en 'ganaderos/{uid}'
+        // (por reglas de Firestore).
+        final uid = user.uid;
+        final myUserDoc = await _firestoreService.getUserById(uid);
+        final userRole = myUserDoc?.rol;
 
+        if (userRole != 'ganadero') {
+          throw Exception(
+            'No se pudo completar el registro del ganadero: el documento users/$uid aún no está listo o no tiene rol="ganadero" (rol=${userRole ?? 'null'}).',
+          );
+        }
+
+        // Guardar datos del ganadero en 'ganaderos'
+        await _firestoreService.saveFarmerData(uid, {
           'nombreCompleto': _nameController.text.trim(),
           'correo': _emailController.text.trim(),
           'telefono': _phoneController.text.trim(),
@@ -135,9 +154,9 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
           'notas': '',
           'fotoUrl': photoUrl,
           'cantidadAnimales': 0,
-
           'estadoSanitario': 'estable',
         });
+
 
         if (!mounted) return;
 
@@ -159,9 +178,20 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
         _isLoading = false;
       });
 
+      // Mostrar más detalle del error de Firebase Auth.
+      // Esto ayuda a identificar la causa exacta del 400 (weak-password,
+      // email-already-in-use, invalid-email, etc.).
+      final msg = (() {
+        try {
+          return 'Error: ${e.toString()}';
+        } catch (_) {
+          return 'Error desconocido';
+        }
+      })();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: ${e.toString()}'),
+          content: Text(msg),
           backgroundColor: Colors.red,
         ),
       );
@@ -170,6 +200,9 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // En web, evitar FileImage/decodificación desde File (crashea con _Namespace).
+    final bool canRenderLocalImage = !kIsWeb;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Registro - Ganadero'),
@@ -223,7 +256,7 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
                               backgroundColor:
                                   AppColors.primary.withOpacity(0.12),
                               backgroundImage:
-                                  _image != null ? FileImage(_image!) : null,
+                            (!kIsWeb && _image != null) ? FileImage(_image!) : null,
                               child: _image == null
                                   ? const Icon(
                                       Icons.camera_alt,
@@ -233,10 +266,7 @@ class _RegisterFarmerScreenState extends State<RegisterFarmerScreen> {
                                   : null,
                             ),
                             const SizedBox(height: 12),
-                            TextButton(
-                              onPressed: _pickImage,
-                              child: const Text('Seleccionar Foto'),
-                            ),
+                            const SizedBox.shrink(),
                           ],
                         ),
                       ),

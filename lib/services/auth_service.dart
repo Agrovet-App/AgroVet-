@@ -16,14 +16,19 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException catch (e) {
-      // Si el email ya existe, permitir continuar intentando con login.
-      // El mensaje original se maneja en RegisterVeterinarianScreen.
+      // Para depuración y para que el UI muestre el motivo exacto del fallo.
       if (e.code == 'email-already-in-use') {
         return null;
       }
-      throw _handleAuthError(e);
+
+      final details = 'Auth error (code=${e.code}): ${e.message}';
+      throw Exception(details);
+    } catch (e) {
+      // Fallback por si falla algo de red/CORS u otra cosa no-FirebaseAuthException.
+      throw Exception('Auth signUp failed: $e');
     }
   }
+
 
   // Inicia sesión (reutilizable en flujos de registro)
   Future<User?> loginWithEmailPassword(String email, String password) async {

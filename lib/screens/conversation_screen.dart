@@ -93,8 +93,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
                 }
 
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
+                  // Si el chat no existe o no tienes permisos, evita que se rompa la UI.
+                  // El chat se creará cuando envíes el primer mensaje.
+                  return const Center(
+                    child: Text(
+                      'Comienza la conversación escribiendo un mensaje.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
                 }
+
 
                 final messages = snapshot.data?.docs ?? [];
 
