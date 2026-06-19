@@ -1,4 +1,4 @@
-package com.example.to_do_ufpso
+package Agrovet.co
 
 import io.flutter.embedding.android.FlutterActivity
 

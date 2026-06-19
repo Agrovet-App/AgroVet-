@@ -22,12 +22,20 @@ import 'package:agrovet/utils/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Inicializar Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-  
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    if (e.toString().contains('duplicate-app')) {
+      // Firebase ya fue inicializado nativamente, lo ignoramos
+      print('Firebase ya estaba inicializado');
+    } else {
+      rethrow;
+    }
+  }
+
   runApp(const MyApp());
 }
 

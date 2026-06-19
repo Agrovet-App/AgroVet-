@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1003971120831",
+    "project_id": "agrovet-nk1323",
+    "storage_bucket": "agrovet-nk1323.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1003971120831:android:462e1a306a93a610a2000a",
+        "android_client_info": {
+          "package_name": "Agrovet.co"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1003971120831-v93kk2hd7udg3q399fta8tcb55jo5qda.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBvEk-UDgx5QYByPN32l_4s5DtlD9fVRE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1003971120831-v93kk2hd7udg3q399fta8tcb55jo5qda.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
